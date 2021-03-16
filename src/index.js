@@ -66,71 +66,58 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
   const { title, deadline } = request.body;
-  const { id } = request.query;
+  const { id } = request.params;
   const { user } = request;
 
   const todo = user.todos.find((todo) => todo.id === id);
   console.log("todo:", todo)
 
-  if (todo) {
-
-    for (const key in user.todos) {
-      if (user.todos[key].id == id) {
-        user.todos[key] = {
-          ...user.todos[key],
-          title: title,
-          deadline: new Date(deadline)
-        }
-      }
-    }
-
-
-    return response.status(201).send();
+  if (!todo) {
+    return response.status(404).json({ error: "todo don't exists!" });
   }
-  return response.status(404).json({ error: "todo don't exists!" });
+
+
+  todo.title = title;
+  todo.deadline = new Date(deadline);
+
+  return response.status(201).json(todo);
+
 
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  const { id } = request.query;
+  const { id } = request.params;
   const { user } = request;
 
   const todo = user.todos.find((todo) => todo.id === id);
 
-  if (todo) {
-    for (const key in user.todos) {
-      if (user.todos[key].id == id) {
-        user.todos[key] = {
-          ...user.todos[key],
-          done: true
-        }
-      }
-    }
-    return response.status(201).send();
+  if (!todo) {
+    return response.status(404).json({ error: "todo don't exists!" });
+
   }
-  return response.status(404).json({ error: "todo don't exists!" });
-  
+
+  todo.done = true;
+  return response.status(201).json(todo);
+
+
 
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  const { id } = request.query;
+  const { id } = request.params;
   const { user } = request;
 
-  const todo = user.todos.find((todo) => todo.id === id);
+  const todoIndex = user.todos.findIndex((todo) => todo.id === id);
 
-  if (todo) {
-    
+  if (todoIndex === -1) {
+    return response.status(404).json({ error: "todo don't exists!" });
 
-    for (const key in user.todos) {
-      if (user.todos[key].id == id) {
-        user.todos.splice(user.todos, 1);
-      }
-    }
+  }
+
+    user.todos.splice(todoIndex,1);
+
+    return response.status(204).json();
   
-    return response.status(204).json(users);
-  }else{
-  return response.status(404).json({ error: "todo don't exists!" });}
 });
 // app.listen(3333);
 module.exports = app;
